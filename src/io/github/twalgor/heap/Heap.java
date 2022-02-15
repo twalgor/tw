@@ -28,6 +28,7 @@ public class Heap {
     h[n] = x;
     x.setHeapIndex(n);
     n++;
+//    System.out.println("n incremented to " + n + " in heap");
     promote(n - 1);
     assert hasIntegrity();
   }
@@ -35,7 +36,9 @@ public class Heap {
   public Queueable removeMin() {
     assert n >= 1;
     Queueable removed = h[0];
+//    System.out.println("heap removing " + removed);
     n--;
+//    System.out.println("n decremented to " + n + " in heap");
     h[0] = h[n];
     h[0].setHeapIndex(0);
     demote(0);
@@ -49,6 +52,8 @@ public class Heap {
     int i = x.getHeapIndex();
     assert h[i].equals(x): h[i] + " : " + x;
     assert i < n;
+    n--;
+//    System.out.println("n decremented to " + n + " in heap");
     h[i] = h[n];
     h[i].setHeapIndex(i);
     if (h[i].compareTo(x) < 0) {

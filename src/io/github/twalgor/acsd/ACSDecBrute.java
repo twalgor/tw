@@ -12,7 +12,7 @@ import io.github.twalgor.common.TreeDecomposition;
 import io.github.twalgor.common.XBitSet;
 import io.github.twalgor.decomposer.SemiPID;
 import io.github.twalgor.greedy.MMD;
-import io.github.twalgor.lower.ContractionLB;
+import io.github.twalgor.lower2.ContractionLB;
 
 public class ACSDecBrute {
 //  static final boolean TRACE = true;

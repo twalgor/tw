@@ -17,22 +17,24 @@ public class Log {
   Calendar calendar;
   
   public Log(String type, String group) {
-    this(type, group, true);
+    this(type, group, false);
   }
   
   public Log(String type, String group, boolean append) {
-    File dir = new File("log/" + type);
+    File dir = new File("c:users/Hisao/Dropbox/log/" + type);
     dir.mkdirs();
     logFile = new File(dir, group + "_" + dateString() + ".log");
     
     try {
-      ps = new PrintStream(new FileOutputStream(logFile, true));
+      ps = new PrintStream(new FileOutputStream(logFile, append));
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     }
     calendar = Calendar.getInstance();
 
     ps.println("Log opened for " + type + ", " + group + " at " 
+        + calendar.getTime());
+    System.out.println("Log opened for " + type + ", " + group + " at "
         + calendar.getTime());
   }
   
@@ -42,19 +44,30 @@ public class Log {
     return sdf.format(d);
   }
   
+  public void log(String message) {
+    log(message, true);
+  }
+
   public void log(String message, boolean verbose) {
     calendar.setTimeInMillis(System.currentTimeMillis());
     String time = calendar.getTime().toString();
     String[] s = time.split(" ");
-    String line = s[2] + " " + s[3] + ":" + message;
+    String line = s[2] + "_" + s[3] + " " + message;
+    if (ps == null) {
+      try {
+        ps = new PrintStream(new FileOutputStream(logFile, true));
+      } catch (FileNotFoundException e) {
+        e.printStackTrace();
+      }
+    }
     ps.println(line);
-    ps.flush();
     if (verbose) {
       System.out.println(line);
     }
   }
   
   public void close() {
-     ps.close();
+    ps.close();
+    ps = null;
   }
 }

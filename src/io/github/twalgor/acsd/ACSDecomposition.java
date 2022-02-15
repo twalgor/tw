@@ -7,6 +7,7 @@ import java.util.Set;
 
 import io.github.twalgor.common.Chordal;
 import io.github.twalgor.common.Graph;
+import io.github.twalgor.common.Minor;
 import io.github.twalgor.common.TreeDecomposition;
 import io.github.twalgor.common.XBitSet;
 import io.github.twalgor.decomposer.SemiPID;
@@ -22,10 +23,14 @@ public class ACSDecomposition {
   MTAlg mtAlg;
   public Graph h;
   public Set<XBitSet> acAtoms;
-  Set<XBitSet> filledSeps;
+  ArrayList<XBitSet> filledSeps;
   int width;
   
   public enum MTAlg {mcs, mmd, mmaf}
+
+  public ACSDecomposition(Graph g) {
+    this(g, MTAlg.mmaf);
+  }
 
   public ACSDecomposition(Graph g, MTAlg mtAlg) {
     this.g = g;
@@ -74,14 +79,14 @@ public class ACSDecomposition {
     Set<XBitSet> remainingSeps = candidateSeps();
     h = g.copy();
     
-    filledSeps = new HashSet<>();
+    filledSeps = new ArrayList<>();
     
     boolean going = true;
     while (going) {
       going = false;
       Set<XBitSet> rem = new HashSet<>();
       for (XBitSet sep: remainingSeps) {
-        if (almostClique(sep, h)) {
+        if (almostClique(sep, g)) {
           h.fill(sep);
           filledSeps.add(sep);
           going = true;
@@ -120,6 +125,70 @@ public class ACSDecomposition {
       }
       remaining.andNot(rCompo);
     }
+  }
+  
+  public Minor minorForAtom(XBitSet atom) {
+    Minor minor = new Minor(g);
+    for (XBitSet sep: filledSeps) {
+      Graph h = minor.getGraph();
+      assert g.fullComponents(sep).size() >= 2;
+      XBitSet sep1 = sep.convert(minor.map);
+      if (!h.isClique(sep1)) {
+        assert h.fullComponents(sep1).size() >= 2;  
+      }
+      assert h.isAlmostClique(sep1);
+      int v = -1;
+      if (!h.isClique(sep1)) {
+        for (int w = sep1.nextSetBit(0); w >= 0; w = sep1.nextSetBit(w + 1)) {
+          if (h.isClique(sep1.removeBit(w))) {
+            v = w;
+          }
+        }
+      assert v >= 0;
+      }
+      ArrayList<XBitSet> compoList = h.separatedComponents(sep1);
+      XBitSet full = null;
+      XBitSet vs = h.all;
+      for (XBitSet compo: compoList) {
+        if (!compo.intersects(atom.convert(minor.map))) {
+          vs = vs.subtract(compo);
+          if (full == null &&
+              h.neighborSet(compo).equals(sep1)) {
+            full = compo;
+          }
+        }
+      }
+      if (v >= 0) {
+        assert full != null;
+      }
+      int[] va = vs.toArray();
+      XBitSet[] components = new XBitSet[va.length];
+      for (int i = 0; i < va.length; i++) {
+        components[i] = (XBitSet) minor.components[va[i]].clone();
+        if (va[i] == v) {
+          for (int w = full.nextSetBit(0); w >= 0; w = full.nextSetBit(w + 1)) {
+            components[i].or(minor.components[w]);
+          }
+        }
+      }
+      minor = new Minor(g, components);
+    }
+    
+    ArrayList<XBitSet> compoList = g.separatedComponents(atom);
+    XBitSet internal = (XBitSet) atom.clone();
+    for (XBitSet compo: compoList) {
+      XBitSet sep = g.neighborSet(compo);
+      internal.andNot(sep);
+      XBitSet sep1 = sep.convert(minor.map);
+      assert sep1.cardinality() == sep.cardinality();
+      assert minor.getGraph().isClique(sep1);
+    }
+    for (int v = internal.nextSetBit(0); v >= 0; v = internal.nextSetBit(v + 1)) {
+      int i = minor.map[v];
+      assert minor.components[i].cardinality() == 1;
+    }
+    
+    return minor;
   }
   
   void exportEdges(Graph f, int[] inv, Graph h) {

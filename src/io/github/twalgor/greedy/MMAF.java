@@ -1,18 +1,17 @@
 package io.github.twalgor.greedy;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
 
-import io.github.twalgor.common.Chordal;
+import io.github.twalgor.acsd.ACSDecomposition;
+import io.github.twalgor.acsd.ACSDecomposition.MTAlg;
 import io.github.twalgor.common.Graph;
-import io.github.twalgor.common.TreeDecomposition;
+import io.github.twalgor.common.LocalGraph;
 import io.github.twalgor.common.XBitSet;
 import io.github.twalgor.heap.Heap;
 import io.github.twalgor.heap.Queueable;
+import io.github.twalgor.log.Log;
 
 public class MMAF {
 //  static final boolean TRACE = true;
@@ -296,4 +295,38 @@ public class MMAF {
       return hx;
     }
   }
+  
+  private static void test(String path, String name) {
+    Log log = new Log("MMAF", name);
+
+    Graph g = Graph.readGraph(path, name);
+    // Graph g = Graph.readGraph("instance/" + path, name);
+
+    log.log("Graph " + name + " read, n = " + g.n + ", m = " + g.numberOfEdges());
+
+    ACSDecomposition acsd = new ACSDecomposition(g, MTAlg.mmaf);
+    acsd.decomposeByACS();
+    XBitSet largestAtom = null;
+    for (XBitSet atom : acsd.acAtoms) {
+      if (largestAtom == null || atom.cardinality() > largestAtom.cardinality()) {
+        largestAtom = atom;
+      }
+    }
+
+    log.log("Largest atom: " + largestAtom.cardinality());
+
+    LocalGraph local = new LocalGraph(g, largestAtom);
+
+    long t0 = System.currentTimeMillis();
+    MMAF mmaf = new MMAF(local.h);
+    mmaf.triangulate();
+    long t = System.currentTimeMillis();
+    log.log("width " + mmaf.width + ", "  + (t - t0) + " milliseces");
+  }
+  
+  public static void main(String[] args) {
+//  Graph g = Graph.readGraph(System.in);
+  test("..\\instance\\PACE2017bonus_gr", "\\Promedus_12_14");
+}
+
 }

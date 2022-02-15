@@ -1,12 +1,11 @@
-package io.github.twalgor.lower;
+package io.github.twalgor.lower2;
 
 import java.util.ArrayList;
 
+import io.github.twalgor.common.Graph;
+import io.github.twalgor.common.XBitSet;
 import io.github.twalgor.heap.Heap;
 import io.github.twalgor.heap.Queueable;
-import io.github.twalgor.common.Graph;
-import io.github.twalgor.common.Minor;
-import io.github.twalgor.common.XBitSet;
 
 public class ContractionLB {
 //  static final boolean TRACE = true;
@@ -14,12 +13,9 @@ public class ContractionLB {
   Graph g;
   Vertex[] vertex;
   XBitSet vertices;
-  Minor minor;
-  Minor boundingMinor;
 
   public ContractionLB(Graph g) {
     this.g = g;
-    minor = new Minor(g);
     vertex = new Vertex[g.n];
     for (int v = 0; v < g.n; v++) {
       vertex[v] = new Vertex(v, (XBitSet) g.neighborSet[v].clone());
@@ -27,10 +23,6 @@ public class ContractionLB {
   }
   
   public int lowerbound() {
-    if (TRACE) {
-      System.out.println("lowerbounding n = " + g.n + ", m = " + g.numberOfEdges());
-    }
-
     int lowerbound = 0;
 
     vertices = (XBitSet) g.all.clone();
@@ -45,7 +37,6 @@ public class ContractionLB {
       int deg = v0.nb.cardinality();
       if (deg > lowerbound) {
         lowerbound = deg;
-        boundingMinor = minor;
       }
       ArrayList<Vertex> minDegVertices = new ArrayList<>();
       minDegVertices.add(v0);
@@ -55,7 +46,6 @@ public class ContractionLB {
           heap.add(v);
           if (minDegVertices.size() == 1) {
             lowerbound = v.nb.cardinality();
-            boundingMinor = minor;
           }
           break;
         }
@@ -165,9 +155,6 @@ public class ContractionLB {
       }
       nb.clear(id);
       assert !nb.get(partner);
-      int u = minor.map[id];
-      int v = minor.map[partner];
-      minor = minor.contract(u, v);
     }
     
     @Override
@@ -187,77 +174,5 @@ public class ContractionLB {
     public int getHeapIndex() {
       return hx;
     }
-  }
-  
-  private static void test(String path, String name, int width) throws Exception{
-    Graph g = Graph.readGraph("instance/" + path, name);
-//    Graph g = Graph.readGraph("instance/" + path, name);
-
-    System.out.println("Graph " + name + " read, n = " + 
-        g.n + ", m = " + g.numberOfEdges() + ", width = " + width);
-    // for (int v = 0; v < g.n; v++) {
-    // System.out.println(v + ": " + g.degree[v] + ", " + g.neighborSet[v]);
-    // }
-    ContractionLB clb = new ContractionLB(g);
-    int lb = clb.lowerbound();
-    System.out.println("contraction lower bound: " + lb);
-  }
-
-  public static void main(String args[]) throws Exception {
-//    test("pkt", "pkt_20_4_50_002", 4);
-//    test("pkt", "pkt_20_4_60_001", 4);
-//    test("pkt", "pkt_20_4_80_001", 4);
-//    test("pkt", "pkt_30_4_40_004", 4);
-//    test("pkt", "pkt_30_4_40_013", 4);
-//    test("pkt", "pkt_30_4_50_001", 4);
-//    test("pkt", "pkt_30_4_80_001", 4);
-//    test("supercubic", "sc_15_023_1", 3);
-//    test("supercubic", "sc_15_030_1", 5);
-//    test("supercubic", "sc_20_030_1", 5);
-//    test("supercubic", "sc_20_060_1", 8);
-//    test("supercubic", "sc_40_060_1", 7);
-//    test("supercubic", "sc_40_080_1", 9);
-//    test("random", "gnm_070_210_1", 22);
-//          test("random", "gnm_070_280_1");
-
-//      test("random", "gnm_080_240_1");
-    //  test("random", "gnm_080_320_1");
-//      test("random", "gnm_090_270_1");
-//      test("random", "gnm_090_360_1");
-    //  test("random", "gnm_090_450_1");
-//    test("pace17exact", "ex001", 10);
-//    test("pace17exact", "ex002", 49);
-//    test("pace17exact", "ex003", 44);
-//    test("pace17exact", "ex004", 486);
-//    test("pace17exact", "ex006", 7);
-//  test("pace17exact", "ex007", 12);
-//    test("pace17exact", "ex010", 9);
-//    test("pace17exact", "ex014", 18);
-//    test("pace17exact", "ex015", 15);
-//    test("pace17exact", "ex019", 11);
-//    test("pace17exact", "ex036", 119);
-//    test("pace17exact", "ex038", 26);
-//    test("pace17exact", "ex041", 9);
-//    test("pace17exact", "ex048", 15);
-//    test("pace17exact", "ex049", 13);
-//    test("pace17exact", "ex050", 28);
-//    test("pace17exact", "ex052", 9);
-//    test("pace17exact", "ex053", 9);
-//    test("pace17exact", "ex057", 117);
-//    test("pace17exact", "ex059", 10);
-//    test("pace17exact", "ex061", 22);
-//    test("pace17exact", "ex063", 44);
-    test("pace17exact", "ex064", 7);
-//    test("pace17exact", "ex065", 25);
-//    test("pace17exact", "ex066", 15);
-//    test("pace17exact", "ex075", 8);
-//    test("pace17exact", "ex081", 6);
-//    test("pace17exact", "ex091", 9);
-//    test("pace17exact", "ex095", 11);
-//    test("pace17exact", "ex096", 9);
-//    test("pace17exact", "ex100", 12);
-//    test("pace17exact", "ex107", 12);
-//    test("pace17exact", "ex121", 34);
-//    test("pace17exact", "ex162", 9);
   }
 }

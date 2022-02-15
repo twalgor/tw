@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2019 Hisao Tamaki
+ * Copyright (c) 2016, 2019, 2022 Hisao Tamaki
  */
 package io.github.twalgor.common;
 
@@ -17,11 +17,25 @@ import java.util.Comparator;
  *
  * November 2019: some methods are moved from Util class
  * 
+ * ?? 2021: static method all added
  * @author  Hisao Tamaki
  */
 
 public class XBitSet extends BitSet 
   implements Comparable<XBitSet>{
+  
+  /**
+   * creates an {@code XBitSet} with all the first {@code n} bits set
+   * @param n
+   * @return an {@code XBitSet} with all of the first {@code n} bits set
+   */
+  public static XBitSet all(int n) {
+    XBitSet result = new XBitSet(n);
+    for (int i = 0; i < n; i++) {
+      result.set(i);
+    }
+    return result;
+  }
   
   /**
    * Creates an empty {@code XBitSet}.
@@ -278,7 +292,7 @@ public class XBitSet extends BitSet
     }
     return result;
   }
-
+  
   /**
    * Short string representation of the target {@code XBitSet}.
    * @return the short string representation of the target
@@ -433,5 +447,23 @@ public class XBitSet extends BitSet
       else 
         return descendingComparator.compare(s1, s2);
     }
+  }
+  
+  /**
+   * Creates an XBitSet from a string representation
+   * @param s String representation of a set of ints, eg. "{1, 5, 7}"
+   * @return the created XBitSet object
+   */
+  public static XBitSet fromString(String s) {
+    assert s.startsWith("{");
+    assert s.endsWith("}");
+    
+    XBitSet result = new XBitSet();
+    String[] t = s.substring(1, s.length() - 1).split(",");
+    for (int i = 0; i < t.length; i++) {
+      int k = Integer.parseInt(t[i].trim());
+      result.set(k);
+    }
+    return result;
   }
 }
